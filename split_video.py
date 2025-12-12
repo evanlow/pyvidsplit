@@ -158,18 +158,20 @@ def split_video(input_file: str, duration_seconds: float, output_part1: str, out
         
         # Create first part (0 to duration)
         print(f"Creating part 1: {output_part1}")
-        part1 = video.subclip(0, duration_seconds)
-        part1.write_videofile(output_part1, codec='libx264', audio_codec='aac', logger=None)
+        part1 = video.subclipped(0, duration_seconds)
+        part1.write_videofile(output_part1, codec='libx264', audio_codec='aac')
         part1.close()
         
-        # Create second part (duration to end)
-        print(f"Creating part 2: {output_part2}")
-        part2 = video.subclip(duration_seconds, total_duration)
-        part2.write_videofile(output_part2, codec='libx264', audio_codec='aac', logger=None)
-        part2.close()
-        
-        # Clean up
+        # Clean up first video object
         video.close()
+        
+        # Reload video for second part (avoids FFmpeg process issues)
+        print(f"Creating part 2: {output_part2}")
+        video2 = VideoFileClip(input_file)
+        part2 = video2.subclipped(duration_seconds, video2.duration)
+        part2.write_videofile(output_part2, codec='libx264', audio_codec='aac')
+        part2.close()
+        video2.close()
         
         return True, ""
         
