@@ -20,6 +20,12 @@ Python scripts to split, concatenate, and convert video files.
 - ✅ Automatic codec selection based on output format
 - ✅ Prevents overwriting input file
 
+### Audio Removal
+- ✅ Remove audio from video files (create silent videos)
+- ✅ Support for all major video formats
+- ✅ Preserves video quality while removing audio track
+- ✅ Automatic output filename generation
+
 ### General
 - ✅ Defensive programming with comprehensive input validation
 - ✅ Support for multiple video formats
@@ -134,6 +140,28 @@ If no output filename is specified, uses input filename with new extension:
 - Input: `video.mov`
 - Default output: `video.mp4`
 
+### Audio Removal
+
+#### Basic Usage
+
+Remove audio from a video:
+```bash
+python remove_audio.py input.mp4
+```
+
+#### Custom Output Filename
+
+Specify a custom output filename:
+```bash
+python remove_audio.py video.mov -o silent.mp4
+```
+
+#### Default Behavior
+
+If no output filename is specified, appends "_silent" to the filename:
+- Input: `presentation.mp4`
+- Default output: `presentation_silent.mp4`
+
 ## Output
 
 ### Splitting
@@ -146,6 +174,9 @@ The concat script creates one video file combining both inputs in sequence.
 
 ### Conversion
 The convert script creates one video file in the specified format with appropriate codecs.
+
+### Audio Removal
+The remove_audio script creates a silent video file with the audio track removed.
 
 ## Examples
 
@@ -191,6 +222,18 @@ python convert_video.py input.mkv --format mov
 python convert_video.py recording.flv -o output.mp4
 ```
 
+### Audio Removal Examples
+```bash
+# Remove audio from video (creates video_silent.mp4)
+python remove_audio.py video.mp4
+
+# Remove audio with custom output name
+python remove_audio.py presentation.mov -o silent_presentation.mp4
+
+# Create silent version of recording
+python remove_audio.py recording.avi --output no_sound.avi
+```
+
 ## Testing
 
 Run the comprehensive test suite:
@@ -204,12 +247,15 @@ python -m unittest test_concat_video -v
 # Test conversion functionality
 python -m unittest test_convert_video -v
 
+# Test audio removal functionality
+python -m unittest test_remove_audio -v
+
 # Run all tests
-pytest test_split_video.py test_concat_video.py test_convert_video.py -v
+pytest test_split_video.py test_concat_video.py test_convert_video.py test_remove_audio.py -v
 ```
 
 Test results:
-- ✅ 72 tests passed (20 split + 21 concat + 31 convert)
+- ✅ 90 tests passed (19 split + 21 concat + 32 convert + 18 audio removal)
 - ✅ 0 warnings
 - ✅ 100% pass rate
 
@@ -222,7 +268,7 @@ All scripts include comprehensive error handling:
 - Ensures split point is within video length (split only)
 - Verifies video durations can be determined (concat)
 - Validates output format is supported (convert)
-- Prevents input/output file collision (convert)
+- Prevents input/output file collision (convert, audio removal)
 - Handles missing dependencies gracefully
 
 ## Requirements
