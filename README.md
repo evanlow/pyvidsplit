@@ -1,13 +1,21 @@
-# PyVidSplit - MP4 Video Splitter
+# PyVidSplit - MP4 Video Splitter & Concatenator
 
-A Python script to split MP4 video files into two parts at a specified duration.
+Python scripts to split and concatenate MP4 video files.
 
 ## Features
 
+### Video Splitting
 - ✅ Split video files at any specified duration
 - ✅ Support for multiple time formats (seconds, MM:SS, HH:MM:SS)
-- ✅ Defensive programming with comprehensive input validation
 - ✅ Automatic output filename generation
+
+### Video Concatenation
+- ✅ Concatenate (stitch) two video files into a single output
+- ✅ Automatic format handling and codec preservation
+- ✅ Defensive programming with comprehensive validation
+
+### General
+- ✅ Defensive programming with comprehensive input validation
 - ✅ Support for multiple video formats (MP4, AVI, MOV, MKV, etc.)
 - ✅ 100% test coverage with zero warnings
 
@@ -25,14 +33,16 @@ pip install moviepy
 
 ## Usage
 
-### Basic Usage
+### Video Splitting
+
+#### Basic Usage
 
 Split a video at 5 minutes 30 seconds:
 ```bash
 python split_video.py input.mp4 --duration 00:05:30
 ```
 
-### Duration Formats
+#### Duration Formats
 
 The script accepts three duration formats:
 
@@ -52,28 +62,56 @@ The script accepts three duration formats:
    python split_video.py video.mp4 -d 01:30:00
    ```
 
-### Custom Output Filenames
+#### Custom Output Filenames
 
 Specify custom output filenames:
 ```bash
 python split_video.py input.mp4 -d 00:10:00 -o1 first_part.mp4 -o2 second_part.mp4
 ```
 
-### Default Behavior
+#### Default Behavior
 
 If no output filenames are specified, the script automatically generates them:
 - Input: `myvideo.mp4`
 - Output 1: `myvideo_part1.mp4`
 - Output 2: `myvideo_part2.mp4`
 
+### Video Concatenation
+
+#### Basic Usage
+
+Concatenate two videos into one:
+```bash
+python concat_video.py video1.mp4 video2.mp4
+```
+
+#### Custom Output Filename
+
+Specify a custom output filename:
+```bash
+python concat_video.py intro.mp4 main.mp4 -o final_video.mp4
+```
+
+#### Default Behavior
+
+If no output filename is specified, the script automatically generates one:
+- Input 1: `intro.mp4`
+- Input 2: `main.mp4`
+- Output: `intro_concat_main.mp4`
+
 ## Output
 
-The script creates two video files:
+### Splitting
+The split script creates two video files:
 1. **Part 1**: From the beginning (0:00) to the specified duration
 2. **Part 2**: From the specified duration to the end of the video
 
+### Concatenation
+The concat script creates one video file combining both inputs in sequence.
+
 ## Examples
 
+### Splitting Examples
 ```bash
 # Split at 5 minutes
 python split_video.py large_video.mp4 -d 00:05:00
@@ -88,25 +126,45 @@ python split_video.py long_movie.mp4 -d 01:15:00
 python split_video.py tutorial.mp4 -d 600 -o1 intro.mp4 -o2 main_content.mp4
 ```
 
+### Concatenation Examples
+```bash
+# Concatenate two videos
+python concat_video.py part1.mp4 part2.mp4
+
+# Concatenate with custom output name
+python concat_video.py intro.mp4 main.mp4 -o complete_video.mp4
+
+# Combine multiple clips
+python concat_video.py opening.mp4 content.mp4 --output final.mp4
+```
+
 ## Testing
 
 Run the comprehensive test suite:
 ```bash
+# Test splitting functionality
 python -m unittest test_split_video -v
+
+# Test concatenation functionality
+python -m unittest test_concat_video -v
+
+# Run all tests
+pytest -v
 ```
 
 Test results:
-- ✅ 20 tests passed
+- ✅ 41 tests passed (20 for splitting, 21 for concatenation)
 - ✅ 0 warnings
 - ✅ 100% pass rate
 
 ## Error Handling
 
-The script includes comprehensive error handling:
-- Validates input file exists and is readable
-- Checks file is a video format
-- Validates duration format
-- Ensures split point is within video length
+Both scripts include comprehensive error handling:
+- Validates input files exist and are readable
+- Checks files are video formats
+- Validates duration format (split only)
+- Ensures split point is within video length (split only)
+- Verifies video durations can be determined (concat)
 - Handles missing dependencies gracefully
 
 ## Requirements
