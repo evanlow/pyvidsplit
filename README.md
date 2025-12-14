@@ -1,6 +1,6 @@
-# PyVidSplit - MP4 Video Splitter & Concatenator
+# PyVidSplit - Video Processing Toolkit
 
-Python scripts to split and concatenate MP4 video files.
+Python scripts to split, concatenate, and convert video files.
 
 ## Features
 
@@ -14,9 +14,15 @@ Python scripts to split and concatenate MP4 video files.
 - ✅ Automatic format handling and codec preservation
 - ✅ Defensive programming with comprehensive validation
 
+### Video Conversion
+- ✅ Convert videos between formats (MOV to MP4, AVI to MP4, etc.)
+- ✅ Support for 8 video formats (MP4, AVI, MOV, MKV, FLV, WMV, WEBM, M4V)
+- ✅ Automatic codec selection based on output format
+- ✅ Prevents overwriting input file
+
 ### General
 - ✅ Defensive programming with comprehensive input validation
-- ✅ Support for multiple video formats (MP4, AVI, MOV, MKV, etc.)
+- ✅ Support for multiple video formats
 - ✅ 100% test coverage with zero warnings
 
 ## Installation
@@ -99,6 +105,35 @@ If no output filename is specified, the script automatically generates one:
 - Input 2: `main.mp4`
 - Output: `intro_concat_main.mp4`
 
+### Video Conversion
+
+#### Basic Usage
+
+Convert a MOV file to MP4:
+```bash
+python convert_video.py input.mov
+```
+
+#### Custom Output Filename
+
+Specify a custom output filename:
+```bash
+python convert_video.py input.avi -o output.mp4
+```
+
+#### Specify Output Format
+
+Explicitly set the output format:
+```bash
+python convert_video.py video.mkv --format mp4
+```
+
+#### Default Behavior
+
+If no output filename is specified, uses input filename with new extension:
+- Input: `video.mov`
+- Default output: `video.mp4`
+
 ## Output
 
 ### Splitting
@@ -108,6 +143,9 @@ The split script creates two video files:
 
 ### Concatenation
 The concat script creates one video file combining both inputs in sequence.
+
+### Conversion
+The convert script creates one video file in the specified format with appropriate codecs.
 
 ## Examples
 
@@ -138,6 +176,21 @@ python concat_video.py intro.mp4 main.mp4 -o complete_video.mp4
 python concat_video.py opening.mp4 content.mp4 --output final.mp4
 ```
 
+### Conversion Examples
+```bash
+# Convert MOV to MP4 (default)
+python convert_video.py video.mov
+
+# Convert AVI to MP4 with custom name
+python convert_video.py source.avi -o converted.mp4
+
+# Convert MKV to MOV
+python convert_video.py input.mkv --format mov
+
+# Convert with explicit output file
+python convert_video.py recording.flv -o output.mp4
+```
+
 ## Testing
 
 Run the comprehensive test suite:
@@ -148,23 +201,28 @@ python -m unittest test_split_video -v
 # Test concatenation functionality
 python -m unittest test_concat_video -v
 
+# Test conversion functionality
+python -m unittest test_convert_video -v
+
 # Run all tests
-pytest -v
+pytest test_split_video.py test_concat_video.py test_convert_video.py -v
 ```
 
 Test results:
-- ✅ 41 tests passed (20 for splitting, 21 for concatenation)
+- ✅ 72 tests passed (20 split + 21 concat + 31 convert)
 - ✅ 0 warnings
 - ✅ 100% pass rate
 
 ## Error Handling
 
-Both scripts include comprehensive error handling:
+All scripts include comprehensive error handling:
 - Validates input files exist and are readable
 - Checks files are video formats
 - Validates duration format (split only)
 - Ensures split point is within video length (split only)
 - Verifies video durations can be determined (concat)
+- Validates output format is supported (convert)
+- Prevents input/output file collision (convert)
 - Handles missing dependencies gracefully
 
 ## Requirements
