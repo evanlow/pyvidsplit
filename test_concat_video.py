@@ -214,6 +214,54 @@ class TestDefensiveProgramming(unittest.TestCase):
             self.fail(f"Should handle special characters gracefully: {e}")
 
 
+class TestQualityValidation(unittest.TestCase):
+    """Test quality parameter validation."""
+    
+    def test_invalid_quality_preset(self):
+        """Test that invalid quality presets are rejected."""
+        from concat_video import concat_video
+        
+        # Test with invalid quality preset
+        success, error = concat_video(
+            input_file1="test1.mp4",
+            input_file2="test2.mp4",
+            output_file="output.mp4",
+            quality="best"  # Invalid preset
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+        self.assertIn("best", error)
+    
+    def test_numeric_quality_rejected(self):
+        """Test that numeric quality values are rejected."""
+        from concat_video import concat_video
+        
+        success, error = concat_video(
+            input_file1="test1.mp4",
+            input_file2="test2.mp4",
+            output_file="output.mp4",
+            quality="23"  # Numeric instead of preset name
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+    
+    def test_none_quality_rejected(self):
+        """Test that None quality value is rejected."""
+        from concat_video import concat_video
+        
+        success, error = concat_video(
+            input_file1="test1.mp4",
+            input_file2="test2.mp4",
+            output_file="output.mp4",
+            quality=None  # None instead of valid preset
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+
+
 if __name__ == '__main__':
     # Run tests with verbose output
     unittest.main(verbosity=2)

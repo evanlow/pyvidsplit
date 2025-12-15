@@ -193,6 +193,58 @@ class TestIntegrationRequirements(unittest.TestCase):
             self.fail(f"moviepy not installed or not importable: {e}")
 
 
+class TestQualityValidation(unittest.TestCase):
+    """Test quality parameter validation."""
+    
+    def test_invalid_quality_preset(self):
+        """Test that invalid quality presets are rejected."""
+        from split_video import split_video
+        
+        # Test with invalid quality preset
+        success, error = split_video(
+            input_file="test.mp4",
+            duration_seconds=10.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4",
+            quality="ultra"  # Invalid preset
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+        self.assertIn("ultra", error)
+    
+    def test_empty_quality_preset(self):
+        """Test that empty quality preset is rejected."""
+        from split_video import split_video
+        
+        success, error = split_video(
+            input_file="test.mp4",
+            duration_seconds=10.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4",
+            quality=""  # Empty preset
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+    
+    def test_case_sensitive_quality(self):
+        """Test that quality presets are case-sensitive."""
+        from split_video import split_video
+        
+        # Test with uppercase (should fail)
+        success, error = split_video(
+            input_file="test.mp4",
+            duration_seconds=10.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4",
+            quality="HIGH"  # Wrong case
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+
+
 if __name__ == '__main__':
     # Run tests with verbose output
     unittest.main(verbosity=2)

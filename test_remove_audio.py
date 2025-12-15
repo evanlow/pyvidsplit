@@ -184,5 +184,51 @@ class TestInputOutputSameness(unittest.TestCase):
         self.assertEqual(input_abs, output_abs)
 
 
+class TestQualityValidation(unittest.TestCase):
+    """Test quality parameter validation."""
+    
+    def test_invalid_quality_preset(self):
+        """Test that invalid quality presets are rejected."""
+        from remove_audio import remove_audio
+        
+        # Test with invalid quality preset
+        success, error = remove_audio(
+            input_file="test.mp4",
+            output_file="output.mp4",
+            quality="maximum"  # Invalid preset
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+        self.assertIn("maximum", error)
+    
+    def test_whitespace_quality_rejected(self):
+        """Test that whitespace quality values are rejected."""
+        from remove_audio import remove_audio
+        
+        success, error = remove_audio(
+            input_file="test.mp4",
+            output_file="output.mp4",
+            quality="  "  # Whitespace only
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+    
+    def test_mixed_case_quality_rejected(self):
+        """Test that quality presets are case-sensitive."""
+        from remove_audio import remove_audio
+        
+        # Test with mixed case (should fail)
+        success, error = remove_audio(
+            input_file="test.mp4",
+            output_file="output.mp4",
+            quality="Medium"  # Wrong case
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+
+
 if __name__ == '__main__':
     unittest.main()
