@@ -67,13 +67,14 @@ def generate_output_filename(input_path: str) -> str:
     return str(output)
 
 
-def remove_audio(input_file: str, output_file: str) -> Tuple[bool, str]:
+def remove_audio(input_file: str, output_file: str, quality: str = 'medium') -> Tuple[bool, str]:
     """
     Remove audio from video file, creating a silent video.
     
     Args:
         input_file: Path to input video file
         output_file: Path for output file (without audio)
+        quality: Quality preset ('high', 'medium', 'low')
         
     Returns:
         Tuple of (success, error_message)
@@ -82,6 +83,13 @@ def remove_audio(input_file: str, output_file: str) -> Tuple[bool, str]:
         from moviepy import VideoFileClip
     except ImportError:
         return False, "moviepy is not installed. Install with: pip install moviepy"
+    
+    # Defensive: Validate quality preset
+    quality_map = {'high': 18, 'medium': 23, 'low': 28}
+    if quality not in quality_map:
+        return False, f"Invalid quality preset: {quality}. Use 'high', 'medium', or 'low'"
+    
+    crf = quality_map[quality]
     
     try:
         # Load video clip
@@ -111,7 +119,8 @@ def remove_audio(input_file: str, output_file: str) -> Tuple[bool, str]:
         video_without_audio.write_videofile(
             output_file,
             codec='libx264',
-            audio=False  # Explicitly disable audio
+            audio=False,  # Explicitly disable audio
+            ffmpeg_params=['-crf', str(crf)]
         )
         
         # Clean up
@@ -140,6 +149,9 @@ Examples:
     parser.add_argument('input', help='Input video file')
     parser.add_argument('-o', '--output', default=None,
                         help='Output filename (default: input_silent.ext)')
+    parser.add_argument('-q', '--quality', choices=['high', 'medium', 'low'],
+                        default='medium',
+                        help='Output quality preset: high (CRF 18), medium (CRF 23, default), low (CRF 28)')
     
     args = parser.parse_args()
     
@@ -172,7 +184,7 @@ Examples:
         sys.exit(1)
     
     # Remove audio from video
-    success, error_msg = remove_audio(args.input, output_file)
+    success, error_msg = remove_audio(args.input, output_file, args.quality)
     
     if success:
         print(f"\n✓ Successfully removed audio from video:")

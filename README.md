@@ -26,6 +26,12 @@ Python scripts to split, concatenate, and convert video files.
 - ✅ Preserves video quality while removing audio track
 - ✅ Automatic output filename generation
 
+### Quality Presets
+- ✅ Three quality levels: high, medium (default), low
+- ✅ Prevents quality degradation from re-encoding
+- ✅ Works with all video processing operations
+- ✅ Uses FFmpeg CRF values for optimal quality/file size balance
+
 ### General
 - ✅ Defensive programming with comprehensive input validation
 - ✅ Support for multiple video formats
@@ -81,6 +87,22 @@ Specify custom output filenames:
 python split_video.py input.mp4 -d 00:10:00 -o1 first_part.mp4 -o2 second_part.mp4
 ```
 
+#### Quality Presets
+
+Control output video quality to prevent degradation from re-encoding:
+```bash
+# High quality (near-lossless, larger files) - CRF 18
+python split_video.py video.mp4 -d 00:05:00 --quality high
+
+# Medium quality (balanced, default) - CRF 23
+python split_video.py video.mp4 -d 00:05:00 --quality medium
+
+# Low quality (smaller files) - CRF 28
+python split_video.py video.mp4 -d 00:05:00 --quality low
+```
+
+**Note**: When splitting videos multiple times, use `--quality high` to minimize quality degradation. Multiple re-encoding operations with lossy compression cause cumulative quality loss.
+
 #### Default Behavior
 
 If no output filenames are specified, the script automatically generates them:
@@ -102,6 +124,20 @@ python concat_video.py video1.mp4 video2.mp4
 Specify a custom output filename:
 ```bash
 python concat_video.py intro.mp4 main.mp4 -o final_video.mp4
+```
+
+#### Quality Presets
+
+Control output video quality:
+```bash
+# High quality (near-lossless, larger files) - CRF 18
+python concat_video.py part1.mp4 part2.mp4 --quality high
+
+# Medium quality (balanced, default) - CRF 23
+python concat_video.py part1.mp4 part2.mp4 --quality medium
+
+# Low quality (smaller files) - CRF 28
+python concat_video.py part1.mp4 part2.mp4 --quality low
 ```
 
 #### Default Behavior
@@ -156,6 +192,20 @@ Specify a custom output filename:
 python remove_audio.py video.mov -o silent.mp4
 ```
 
+#### Quality Presets
+
+Control output video quality:
+```bash
+# High quality (near-lossless, larger files) - CRF 18
+python remove_audio.py video.mp4 --quality high
+
+# Medium quality (balanced, default) - CRF 23
+python remove_audio.py video.mp4 --quality medium
+
+# Low quality (smaller files) - CRF 28
+python remove_audio.py video.mp4 --quality low
+```
+
 #### Default Behavior
 
 If no output filename is specified, appends "_silent" to the filename:
@@ -193,6 +243,9 @@ python split_video.py long_movie.mp4 -d 01:15:00
 
 # Split with custom names
 python split_video.py tutorial.mp4 -d 600 -o1 intro.mp4 -o2 main_content.mp4
+
+# Split with high quality to prevent degradation
+python split_video.py video.mp4 -d 00:10:00 --quality high
 ```
 
 ### Concatenation Examples
@@ -205,6 +258,9 @@ python concat_video.py intro.mp4 main.mp4 -o complete_video.mp4
 
 # Combine multiple clips
 python concat_video.py opening.mp4 content.mp4 --output final.mp4
+
+# Concatenate with high quality
+python concat_video.py part1.mp4 part2.mp4 --quality high -o final.mp4
 ```
 
 ### Conversion Examples
@@ -232,6 +288,9 @@ python remove_audio.py presentation.mov -o silent_presentation.mp4
 
 # Create silent version of recording
 python remove_audio.py recording.avi --output no_sound.avi
+
+# Remove audio with high quality preservation
+python remove_audio.py video.mp4 --quality high
 ```
 
 ## Testing

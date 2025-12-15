@@ -74,7 +74,7 @@ def generate_output_filename(input1_path: str, input2_path: str) -> str:
     return str(output)
 
 
-def concat_videos(input_file1: str, input_file2: str, output_file: str) -> Tuple[bool, str]:
+def concat_video(input_file1: str, input_file2: str, output_file: str, quality: str = 'medium') -> Tuple[bool, str]:
     """
     Concatenate two video files into a single output file.
     
@@ -82,6 +82,7 @@ def concat_videos(input_file1: str, input_file2: str, output_file: str) -> Tuple
         input_file1: Path to first input video file
         input_file2: Path to second input video file
         output_file: Path for output file
+        quality: Quality preset ('high', 'medium', 'low')
         
     Returns:
         Tuple of (success, error_message)
@@ -90,6 +91,13 @@ def concat_videos(input_file1: str, input_file2: str, output_file: str) -> Tuple
         from moviepy import VideoFileClip, concatenate_videoclips
     except ImportError:
         return False, "moviepy is not installed. Install with: pip install moviepy"
+    
+    # Defensive: Validate quality preset
+    quality_map = {'high': 18, 'medium': 23, 'low': 28}
+    if quality not in quality_map:
+        return False, f"Invalid quality preset: {quality}. Use 'high', 'medium', or 'low'"
+    
+    crf = quality_map[quality]
     
     try:
         # Load first video clip
@@ -126,7 +134,8 @@ def concat_videos(input_file1: str, input_file2: str, output_file: str) -> Tuple
         
         # Write output file
         print(f"Writing output: {output_file}")
-        final_video.write_videofile(output_file, codec='libx264', audio_codec='aac')
+        final_video.write_videofile(output_file, codec='libx264', audio_codec='aac',
+                                    ffmpeg_params=['-crf', str(crf)])
         
         # Clean up
         final_video.close()
@@ -155,7 +164,10 @@ Examples:
     parser.add_argument('input1', help='First input video file')
     parser.add_argument('input2', help='Second input video file')
     parser.add_argument('-o', '--output', default=None,
-                        help='Output filename (default: input1_concat_input2.mp4)')
+                        help='Output filename (default: input1_concat_input2.ext)')
+    parser.add_argument('-q', '--quality', choices=['high', 'medium', 'low'],
+                        default='medium',
+                        help='Output quality preset: high (CRF 18), medium (CRF 23, default), low (CRF 28)')
     
     args = parser.parse_args()
     
@@ -182,7 +194,7 @@ Examples:
         print(f"Warning: Output file already exists and will be overwritten: {output_file}")
     
     # Concatenate the videos
-    success, error_msg = concat_videos(args.input1, args.input2, output_file)
+    success, error_msg = concat_video(args.input1, args.input2, output_file, args.quality)
     
     if success:
         print(f"\n✓ Successfully concatenated videos into:")

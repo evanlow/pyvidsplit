@@ -116,7 +116,7 @@ def generate_output_filenames(input_path: str) -> Tuple[str, str]:
     return str(part1), str(part2)
 
 
-def split_video(input_file: str, duration_seconds: float, output_part1: str, output_part2: str) -> Tuple[bool, str]:
+def split_video(input_file: str, duration_seconds: float, output_part1: str, output_part2: str, quality: str = 'medium') -> Tuple[bool, str]:
     """
     Split video file into two parts at specified duration.
     
@@ -125,6 +125,7 @@ def split_video(input_file: str, duration_seconds: float, output_part1: str, out
         duration_seconds: Duration in seconds where to split
         output_part1: Path for first output file
         output_part2: Path for second output file
+        quality: Quality preset ('high', 'medium', 'low')
         
     Returns:
         Tuple of (success, error_message)
@@ -137,6 +138,13 @@ def split_video(input_file: str, duration_seconds: float, output_part1: str, out
     # Defensive: Validate duration is positive
     if duration_seconds <= 0:
         return False, f"Duration must be positive, got: {duration_seconds}"
+    
+    # Defensive: Validate quality preset
+    quality_map = {'high': 18, 'medium': 23, 'low': 28}
+    if quality not in quality_map:
+        return False, f"Invalid quality preset: {quality}. Use 'high', 'medium', or 'low'"
+    
+    crf = quality_map[quality]
     
     try:
         # Load video clip
@@ -159,7 +167,8 @@ def split_video(input_file: str, duration_seconds: float, output_part1: str, out
         # Create first part (0 to duration)
         print(f"Creating part 1: {output_part1}")
         part1 = video.subclipped(0, duration_seconds)
-        part1.write_videofile(output_part1, codec='libx264', audio_codec='aac')
+        part1.write_videofile(output_part1, codec='libx264', audio_codec='aac',
+                            ffmpeg_params=['-crf', str(crf)])
         part1.close()
         
         # Clean up first video object
@@ -169,7 +178,8 @@ def split_video(input_file: str, duration_seconds: float, output_part1: str, out
         print(f"Creating part 2: {output_part2}")
         video2 = VideoFileClip(input_file)
         part2 = video2.subclipped(duration_seconds, video2.duration)
-        part2.write_videofile(output_part2, codec='libx264', audio_codec='aac')
+        part2.write_videofile(output_part2, codec='libx264', audio_codec='aac',
+                            ffmpeg_params=['-crf', str(crf)])
         part2.close()
         video2.close()
         
@@ -199,6 +209,9 @@ Examples:
                         help='Output filename for part 1 (default: input_part1.mp4)')
     parser.add_argument('-o2', '--output2', default=None,
                         help='Output filename for part 2 (default: input_part2.mp4)')
+    parser.add_argument('-q', '--quality', choices=['high', 'medium', 'low'],
+                        default='medium',
+                        help='Output quality preset: high (CRF 18), medium (CRF 23, default), low (CRF 28)')
     
     args = parser.parse_args()
     
@@ -229,7 +242,7 @@ Examples:
         print(f"Warning: Output file already exists and will be overwritten: {output_part2}")
     
     # Split the video
-    success, error_msg = split_video(args.input, duration, output_part1, output_part2)
+    success, error_msg = split_video(args.input, duration, output_part1, output_part2, args.quality)
     
     if success:
         print(f"\n✓ Successfully split video into:")
