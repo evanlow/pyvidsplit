@@ -12,6 +12,7 @@ Usage:
 import argparse
 import os
 import sys
+import subprocess
 from pathlib import Path
 from typing import Tuple, Optional
 
@@ -116,6 +117,101 @@ def generate_output_filenames(input_path: str) -> Tuple[str, str]:
     return str(part1), str(part2)
 
 
+def split_video_ffmpeg(input_file: str, duration_seconds: float, output_part1: str, output_part2: str, quality: str = 'medium') -> Tuple[bool, str]:
+    """
+    Split video file using FFmpeg directly for better A/V sync.
+    
+    This method uses FFmpeg's accurate seeking to avoid A/V sync issues
+    that can occur with re-encoding approaches.
+    
+    Args:
+        input_file: Path to input video file
+        duration_seconds: Duration in seconds where to split
+        output_part1: Path for first output file
+        output_part2: Path for second output file
+        quality: Quality preset ('high', 'medium', 'low')
+        
+    Returns:
+        Tuple of (success, error_message)
+    """
+    try:
+        import imageio_ffmpeg
+        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        return False, "imageio_ffmpeg is not installed"
+    
+    # Defensive: Validate duration is positive
+    if duration_seconds <= 0:
+        return False, f"Duration must be positive, got: {duration_seconds}"
+    
+    # Defensive: Validate quality preset
+    quality_map = {'high': 18, 'medium': 23, 'low': 28}
+    if quality not in quality_map:
+        return False, f"Invalid quality preset: {quality}. Use 'high', 'medium', or 'low'"
+    
+    crf = quality_map[quality]
+    
+    try:
+        # Get video duration first
+        from moviepy import VideoFileClip
+        print(f"Loading video: {input_file}")
+        video = VideoFileClip(input_file)
+        total_duration = video.duration
+        video.close()
+        
+        if total_duration is None:
+            return False, "Unable to determine video duration"
+        
+        if duration_seconds >= total_duration:
+            return False, f"Split duration ({duration_seconds}s) exceeds video length ({total_duration:.2f}s)"
+        
+        print(f"Video duration: {total_duration:.2f} seconds")
+        print(f"Splitting at: {duration_seconds:.2f} seconds")
+        
+        # Part 1: From start to duration_seconds
+        # Using -t (duration) instead of -to (end time) for better accuracy
+        print(f"Creating part 1: {output_part1}")
+        cmd_part1 = [
+            ffmpeg_exe,
+            '-i', input_file,
+            '-t', str(duration_seconds),
+            '-c:v', 'libx264',
+            '-crf', str(crf),
+            '-c:a', 'aac',
+            '-avoid_negative_ts', 'make_zero',
+            '-y',  # Overwrite output file
+            output_part1
+        ]
+        
+        result = subprocess.run(cmd_part1, capture_output=True, text=True)
+        if result.returncode != 0:
+            return False, f"FFmpeg error creating part 1: {result.stderr}"
+        
+        # Part 2: From duration_seconds to end
+        # Using -ss after -i for accurate seeking with re-encoding
+        print(f"Creating part 2: {output_part2}")
+        cmd_part2 = [
+            ffmpeg_exe,
+            '-i', input_file,
+            '-ss', str(duration_seconds),
+            '-c:v', 'libx264',
+            '-crf', str(crf),
+            '-c:a', 'aac',
+            '-avoid_negative_ts', 'make_zero',
+            '-y',  # Overwrite output file
+            output_part2
+        ]
+        
+        result = subprocess.run(cmd_part2, capture_output=True, text=True)
+        if result.returncode != 0:
+            return False, f"FFmpeg error creating part 2: {result.stderr}"
+        
+        return True, ""
+        
+    except Exception as e:
+        return False, f"Error splitting video: {str(e)}"
+
+
 def split_video(input_file: str, duration_seconds: float, output_part1: str, output_part2: str, quality: str = 'medium') -> Tuple[bool, str]:
     """
     Split video file into two parts at specified duration.
@@ -164,10 +260,15 @@ def split_video(input_file: str, duration_seconds: float, output_part1: str, out
         print(f"Video duration: {total_duration:.2f} seconds")
         print(f"Splitting at: {duration_seconds:.2f} seconds")
         
+        # Get original FPS and audio FPS to maintain sync
+        original_fps = video.fps
+        original_audio_fps = video.audio.fps if video.audio else 44100
+        
         # Create first part (0 to duration)
         print(f"Creating part 1: {output_part1}")
         part1 = video.subclipped(0, duration_seconds)
         part1.write_videofile(output_part1, codec='libx264', audio_codec='aac',
+                            fps=original_fps, audio_fps=original_audio_fps,
                             ffmpeg_params=['-crf', str(crf)])
         part1.close()
         
@@ -179,6 +280,7 @@ def split_video(input_file: str, duration_seconds: float, output_part1: str, out
         video2 = VideoFileClip(input_file)
         part2 = video2.subclipped(duration_seconds, video2.duration)
         part2.write_videofile(output_part2, codec='libx264', audio_codec='aac',
+                            fps=original_fps, audio_fps=original_audio_fps,
                             ffmpeg_params=['-crf', str(crf)])
         part2.close()
         video2.close()
@@ -241,8 +343,8 @@ Examples:
     if os.path.exists(output_part2):
         print(f"Warning: Output file already exists and will be overwritten: {output_part2}")
     
-    # Split the video
-    success, error_msg = split_video(args.input, duration, output_part1, output_part2, args.quality)
+    # Split the video using FFmpeg directly for better A/V sync
+    success, error_msg = split_video_ffmpeg(args.input, duration, output_part1, output_part2, args.quality)
     
     if success:
         print(f"\n✓ Successfully split video into:")
