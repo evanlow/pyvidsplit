@@ -183,9 +183,9 @@ def split_video_ffmpeg(input_file: str, duration_seconds: float, output_part1: s
             output_part1
         ]
         
-        result = subprocess.run(cmd_part1, capture_output=True, text=True)
+        result = subprocess.run(cmd_part1)
         if result.returncode != 0:
-            return False, f"FFmpeg error creating part 1: {result.stderr}"
+            return False, "FFmpeg failed to create part 1 (check output above for details)"
         
         # Part 2: From duration_seconds to end
         # Using -ss after -i for accurate seeking with re-encoding
@@ -202,9 +202,9 @@ def split_video_ffmpeg(input_file: str, duration_seconds: float, output_part1: s
             output_part2
         ]
         
-        result = subprocess.run(cmd_part2, capture_output=True, text=True)
+        result = subprocess.run(cmd_part2)
         if result.returncode != 0:
-            return False, f"FFmpeg error creating part 2: {result.stderr}"
+            return False, "FFmpeg failed to create part 2 (check output above for details)"
         
         return True, ""
         
