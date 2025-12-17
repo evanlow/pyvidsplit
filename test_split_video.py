@@ -181,7 +181,7 @@ class TestGenerateOutputFilenames(unittest.TestCase):
 
 
 class TestIntegrationRequirements(unittest.TestCase):
-    """Test that moviepy is installed and importable."""
+    """Test that required dependencies are installed and importable."""
     
     def test_moviepy_import(self):
         """Test that moviepy can be imported."""
@@ -191,6 +191,34 @@ class TestIntegrationRequirements(unittest.TestCase):
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"moviepy not installed or not importable: {e}")
+    
+    def test_imageio_ffmpeg_import(self):
+        """Test that imageio_ffmpeg can be imported."""
+        try:
+            import imageio_ffmpeg
+            # If we get here, import succeeded
+            self.assertTrue(True)
+        except ImportError as e:
+            self.fail(f"imageio_ffmpeg not installed or not importable: {e}")
+    
+    def test_ffmpeg_executable_available(self):
+        """Test that FFmpeg executable can be located and is functional."""
+        try:
+            import imageio_ffmpeg
+            ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+            self.assertIsNotNone(ffmpeg_exe, "FFmpeg executable path should not be None")
+            self.assertTrue(os.path.exists(ffmpeg_exe), f"FFmpeg executable not found at: {ffmpeg_exe}")
+            
+            # Test that FFmpeg is actually executable by checking version
+            import subprocess
+            result = subprocess.run([ffmpeg_exe, '-version'], 
+                                  capture_output=True, 
+                                  timeout=5)
+            self.assertEqual(result.returncode, 0, "FFmpeg executable failed to run")
+        except ImportError as e:
+            self.fail(f"imageio_ffmpeg not installed: {e}")
+        except Exception as e:
+            self.fail(f"FFmpeg executable test failed: {e}")
 
 
 class TestQualityValidation(unittest.TestCase):
@@ -243,6 +271,85 @@ class TestQualityValidation(unittest.TestCase):
         
         self.assertFalse(success)
         self.assertIn("Invalid quality preset", error)
+    
+    def test_invalid_quality_preset_ffmpeg(self):
+        """Test that split_video_ffmpeg rejects invalid quality presets."""
+        from split_video import split_video_ffmpeg
+        
+        success, error = split_video_ffmpeg(
+            input_file="test.mp4",
+            duration_seconds=10.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4",
+            quality="ultra"
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Invalid quality preset", error)
+
+
+class TestSplitVideoFFmpegValidation(unittest.TestCase):
+    """Test split_video_ffmpeg function validation logic."""
+    
+    def test_negative_duration_rejected(self):
+        """Test that negative duration is rejected."""
+        from split_video import split_video_ffmpeg
+        
+        success, error = split_video_ffmpeg(
+            input_file="test.mp4",
+            duration_seconds=-10.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4"
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Duration must be positive", error)
+    
+    def test_zero_duration_rejected(self):
+        """Test that zero duration is rejected."""
+        from split_video import split_video_ffmpeg
+        
+        success, error = split_video_ffmpeg(
+            input_file="test.mp4",
+            duration_seconds=0.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4"
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Duration must be positive", error)
+
+
+class TestSplitVideoValidation(unittest.TestCase):
+    """Test split_video function validation logic."""
+    
+    def test_negative_duration_rejected(self):
+        """Test that negative duration is rejected."""
+        from split_video import split_video
+        
+        success, error = split_video(
+            input_file="test.mp4",
+            duration_seconds=-10.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4"
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Duration must be positive", error)
+    
+    def test_zero_duration_rejected(self):
+        """Test that zero duration is rejected."""
+        from split_video import split_video
+        
+        success, error = split_video(
+            input_file="test.mp4",
+            duration_seconds=0.0,
+            output_part1="part1.mp4",
+            output_part2="part2.mp4"
+        )
+        
+        self.assertFalse(success)
+        self.assertIn("Duration must be positive", error)
 
 
 if __name__ == '__main__':
