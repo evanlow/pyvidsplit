@@ -125,9 +125,18 @@ def concat_video(input_file1: str, input_file2: str, output_file: str, quality: 
         
         print(f"Video 2 duration: {duration2:.2f} seconds")
         
-        # Concatenate videos
+        # Check if videos have different resolutions
+        size1 = video1.size
+        size2 = video2.size
+        if size1 != size2:
+            print(f"Warning: Videos have different resolutions:")
+            print(f"  Video 1: {size1[0]}x{size1[1]}")
+            print(f"  Video 2: {size2[0]}x{size2[1]}")
+            print(f"  Using 'compose' method to handle different sizes")
+        
+        # Concatenate videos using method="compose" to handle different resolutions
         print(f"Concatenating videos...")
-        final_video = concatenate_videoclips([video1, video2])
+        final_video = concatenate_videoclips([video1, video2], method="compose")
         
         total_duration = final_video.duration or 0
         print(f"Output video duration: {total_duration:.2f} seconds")
