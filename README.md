@@ -1,12 +1,19 @@
-# PyVidSplit - Video Processing Toolkit
+# PyVidSplit - Video & Audio Processing Toolkit
 
-Python scripts to split, concatenate, and convert video files.
+Python scripts to split, concatenate, and convert video and audio files.
 
 ## Features
 
 ### Video Splitting
 - ✅ Split video files at any specified duration
 - ✅ Support for multiple time formats (seconds, MM:SS, HH:MM:SS)
+- ✅ Automatic output filename generation
+
+### Audio Splitting
+- ✅ Split audio files at any specified duration
+- ✅ Support for 6 audio formats (M4A, MP3, WAV, AAC, FLAC, OGG)
+- ✅ Multiple time format support (seconds, MM:SS, HH:MM:SS)
+- ✅ Quality presets for audio bitrate control
 - ✅ Automatic output filename generation
 
 ### Video Concatenation
@@ -29,12 +36,12 @@ Python scripts to split, concatenate, and convert video files.
 ### Quality Presets
 - ✅ Three quality levels: high, medium (default), low
 - ✅ Prevents quality degradation from re-encoding
-- ✅ Works with all video processing operations
-- ✅ Uses FFmpeg CRF values for optimal quality/file size balance
+- ✅ Works with all video and audio processing operations
+- ✅ Uses FFmpeg CRF values for video, bitrate control for audio
 
 ### General
 - ✅ Defensive programming with comprehensive input validation
-- ✅ Support for multiple video formats
+- ✅ Support for multiple video and audio formats
 - ✅ 100% test coverage with zero warnings
 
 ## Installation
@@ -109,6 +116,75 @@ If no output filenames are specified, the script automatically generates them:
 - Input: `myvideo.mp4`
 - Output 1: `myvideo_part1.mp4`
 - Output 2: `myvideo_part2.mp4`
+
+### Audio Splitting
+
+#### Basic Usage
+
+Split an audio file at 5 minutes 30 seconds:
+```bash
+python split_audio.py input.m4a --duration 00:05:30
+```
+
+#### Supported Audio Formats
+
+The script supports 6 audio formats:
+- M4A (MPEG-4 Audio)
+- MP3 (MPEG Audio Layer 3)
+- WAV (Waveform Audio)
+- AAC (Advanced Audio Coding)
+- FLAC (Free Lossless Audio Codec)
+- OGG (Ogg Vorbis)
+
+#### Duration Formats
+
+The script accepts three duration formats:
+
+1. **Seconds** (integer or float):
+   ```bash
+   python split_audio.py podcast.mp3 -d 600
+   python split_audio.py song.m4a -d 180.5
+   ```
+
+2. **MM:SS** format:
+   ```bash
+   python split_audio.py audio.wav -d 10:30
+   ```
+
+3. **HH:MM:SS** format:
+   ```bash
+   python split_audio.py lecture.m4a -d 01:15:00
+   ```
+
+#### Custom Output Filenames
+
+Specify custom output filenames:
+```bash
+python split_audio.py podcast.mp3 -d 00:30:00 -o1 intro.mp3 -o2 main_content.mp3
+```
+
+#### Quality Presets
+
+Control output audio quality with bitrate presets:
+```bash
+# High quality (near-lossless, larger files) - 192k bitrate
+python split_audio.py song.m4a -d 00:03:00 --quality high
+
+# Medium quality (balanced, default) - 128k bitrate
+python split_audio.py podcast.mp3 -d 00:10:00 --quality medium
+
+# Low quality (smaller files) - 96k bitrate
+python split_audio.py interview.wav -d 00:05:00 --quality low
+```
+
+**Note**: For music and high-fidelity audio, use `--quality high`. For podcasts and speech, `medium` or `low` quality is usually sufficient.
+
+#### Default Behavior
+
+If no output filenames are specified, the script automatically generates them:
+- Input: `podcast.m4a`
+- Output 1: `podcast_part1.m4a`
+- Output 2: `podcast_part2.m4a`
 
 ### Video Concatenation
 

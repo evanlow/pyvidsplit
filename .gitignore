@@ -41,5 +41,14 @@ Thumbs.db
 *.flv
 *.wmv
 
-# But keep any sample videos in a samples directory if needed
+# Audio files (don't commit large test audio files)
+*.m4a
+*.mp3
+*.wav
+*.aac
+*.flac
+*.ogg
+
+# But keep any sample files in a samples directory if needed
 !samples/*.mp4
+!samples/*.m4a
